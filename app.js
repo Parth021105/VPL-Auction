@@ -57,7 +57,7 @@ document.addEventListener('DOMContentLoaded', () => {
     'Shyam More', 'Nikhil Shendge',
 'Shivam Sonawane', 'Pranav Kadam', 'Krishna Yadav', 'Abhijeet Kadam',
 'Aryan Kadam', 'Atharva Kokane', 'Sarthak Kedari', 'Ruturaj Shigvan',
-    'Sopan Nerpagar'
+'Sopan Nerpagar', 'Vinod Rane'
   ];
 
   function buildDefaultPlayers() {
