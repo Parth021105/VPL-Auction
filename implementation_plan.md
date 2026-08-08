@@ -13,14 +13,14 @@ The portal has been fully rebuilt to match your exact rules:
 | Black Jackals | Yash Shinde | `Black Jackals.jpeg` |
 | RKD Warriors | Abhishek Achrekar | `RKD Warriors.jpeg` |
 | Thunder Hawks | Adesh Durafe | `Thunder Hawks.jpeg` |
-| Shivaay Spikers | Harshad Natekar | — |
+| Shivaay Spikers | Harshad Natekar | `Shivaay Spikers.jpeg` |
 
 - All 5 owner slots are now filled.
 - **Strict ₹500 purse**: every owner starts with ₹500. If the final sold price exceeds the owner's remaining purse, the sale is **BLOCKED** with a warning.
 - Logos load automatically from the project folder (e.g. `7 Deadly Zins.jpeg`), with a volleyball-icon fallback if missing.
 
-### 2. Official Players List (38 Players) ✅ Added
-The following 38 players are pre-loaded into the app as the default auction list:
+### 2. Official Players List (39 Players) ✅ Added
+The following 39 players are pre-loaded into the app as the default auction list:
 
 1. Parth Wavhal
 2. Rushab Pendurkar
@@ -60,6 +60,7 @@ The following 38 players are pre-loaded into the app as the default auction list
 36. Atharva Kokane
 37. Sarthak Kedari
 38. Ruturaj Shigvan
+39. Sopan Nerpagar
 
 ### 3. Physical Auction Workflow
 - Only the **Player Name** is shown in the giant spotlight (bidding is conducted physically in the room).

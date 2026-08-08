@@ -25,7 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
     auctionComplete: false
   };
 
-  const STORAGE_KEY = 'VPL_AUCTION_STATE_2026_V6';
+  const STORAGE_KEY = 'VPL_AUCTION_STATE_2026_V7';
 
   // Maximum number of auction rounds (subsequent rounds re-auction unsold players).
   const MAX_ROUNDS = 4;
@@ -37,14 +37,14 @@ document.addEventListener('DOMContentLoaded', () => {
     { id: 'team-2', name: 'Black Jackals', owner: 'Yash Shinde', logo: 'Black Jackals.jpeg', budget: 500 },
     { id: 'team-3', name: 'RKD Warriors', owner: 'Abhishek Achrekar', logo: 'RKD Warriors.jpeg', budget: 500 },
     { id: 'team-4', name: 'Thunder Hawks', owner: 'Adesh Durafe', logo: 'Thunder Hawks.jpeg', budget: 500 },
-    { id: 'team-5', name: 'Shivaay Spikers', owner: 'Harshad Natekar', logo: '', budget: 500 }
+{ id: 'team-5', name: 'Shivaay Spikers', owner: 'Harshad Natekar', logo: 'Shivaay Spikers.jpeg', budget: 500 }
   ];
 
 
   // Sample data load uses the same registered teams.
   const DEMO_TEAMS = DEFAULT_TEAMS.map(t => ({ ...t }));
 
-//  Official VPL registered players list (38 players).
+//  Official VPL registered players list (39 players).
 
   const DEFAULT_PLAYERS = [
     'Parth Wavhal', 'Rushab Pendurkar', 'Vijay Karande', 'Sujal Kaspale',
@@ -56,7 +56,8 @@ document.addEventListener('DOMContentLoaded', () => {
 'Ashish Chavan', 'Shubham Achrekar', 'Amey Bhatkar', 'Akshay Shimpi',
     'Shyam More', 'Nikhil Shendge',
 'Shivam Sonawane', 'Pranav Kadam', 'Krishna Yadav', 'Abhijeet Kadam',
-    'Aryan Kadam', 'Atharva Kokane', 'Sarthak Kedari', 'Ruturaj Shigvan'
+'Aryan Kadam', 'Atharva Kokane', 'Sarthak Kedari', 'Ruturaj Shigvan',
+    'Sopan Nerpagar'
   ];
 
   function buildDefaultPlayers() {
