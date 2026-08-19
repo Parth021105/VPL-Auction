@@ -25,6 +25,10 @@ document.addEventListener('DOMContentLoaded', () => {
     auctionComplete: false
   };
 
+  // Undo / Redo Stacks
+  let historyStack = [];
+  let redoStack = [];
+
   const STORAGE_KEY = 'VPL_AUCTION_STATE_2026_V7';
 
   // Maximum number of auction rounds (subsequent rounds re-auction unsold players).
@@ -37,27 +41,25 @@ document.addEventListener('DOMContentLoaded', () => {
     { id: 'team-2', name: 'Black Jackals', owner: 'Yash Shinde', logo: 'Black Jackals.jpeg', budget: 500 },
     { id: 'team-3', name: 'RKD Warriors', owner: 'Abhishek Achrekar', logo: 'RKD Warriors.jpeg', budget: 500 },
     { id: 'team-4', name: 'Thunder Hawks', owner: 'Adesh Durafe', logo: 'Thunder Hawks.jpeg', budget: 500 },
-{ id: 'team-5', name: 'Shivaay Spikers', owner: 'Harshad Natekar', logo: 'Shivaay Spikers.jpeg', budget: 500 }
+    { id: 'team-5', name: 'Shivaay Spikers', owner: 'Harshad Natekar', logo: 'Shivaay Spikers.jpeg', budget: 500 }
   ];
-
 
   // Sample data load uses the same registered teams.
   const DEMO_TEAMS = DEFAULT_TEAMS.map(t => ({ ...t }));
 
-//  Official VPL registered players list (39 players).
-
+  // Official VPL registered players list (including Chetan Pokharkar).
   const DEFAULT_PLAYERS = [
-    'Parth Wavhal', 'Rushab Pendurkar', 'Vijay Karande', 'Sujal Kaspale',
+    'Parth Wavhal', 'Chetan Pokharkar', 'Rushab Pendurkar', 'Vijay Karande', 'Sujal Kaspale',
     'Ritesh Chavan', 'Sahil Gharkar', 'Yug Sanil', 'Sarthak Khapre',
     'Krishna Karande', 'Shantanu Rajeshirke', 'Saurabh Rajeshirke', 'Swayam Rajeshirke',
     'Nilu Sonar', 'Prasad Natekar', 'Ganesh Waikar', 'Pratik Marathe',
     'Aryan Shinde', 'Nitin Utekar', 'Soham Dongre', 'Shivansh Patil',
     'Sachin Vichare', 'Manmohan Konde', 'Gopal Koyande', 'Vinayak Utekar',
-'Ashish Chavan', 'Shubham Achrekar', 'Amey Bhatkar', 'Akshay Shimpi',
+    'Ashish Chavan', 'Shubham Achrekar', 'Amey Bhatkar', 'Akshay Shimpi',
     'Shyam More', 'Nikhil Shendge',
-'Shivam Sonawane', 'Pranav Kadam', 'Krishna Yadav', 'Abhijeet Kadam',
-'Aryan Kadam', 'Atharva Kokane', 'Sarthak Kedari', 'Ruturaj Shigvan',
-'Sopan Nerpagar', 'Vinod Rane'
+    'Shivam Sonawane', 'Pranav Kadam', 'Krishna Yadav', 'Abhijeet Kadam',
+    'Aryan Kadam', 'Atharva Kokane', 'Sarthak Kedari', 'Ruturaj Shigvan',
+    'Sopan Nerpagar', 'Vinod Rane'
   ];
 
   function buildDefaultPlayers() {
@@ -85,6 +87,18 @@ document.addEventListener('DOMContentLoaded', () => {
       state.players = buildDefaultPlayers();
     }
 
+    // Ensure Chetan Pokharkar exists in players pool
+    if (!state.players.some(p => p.name === 'Chetan Pokharkar')) {
+      state.players.splice(1, 0, {
+        id: 'p-chetan-' + Date.now(),
+        name: 'Chetan Pokharkar',
+        status: 'UNAUCTIONED',
+        teamId: null,
+        finalPrice: 0
+      });
+      saveStateToStorage();
+    }
+
     // Normalize / migrate safety
     state.teams.forEach(t => { t.budget = 500; });
     if (!state.round) state.round = 1;
@@ -94,6 +108,52 @@ document.addEventListener('DOMContentLoaded', () => {
 
     setupEventListeners();
     renderAll();
+    updateHistoryButtons();
+  }
+
+  // --- HISTORY UNDO / REDO ---
+  function saveHistorySnapshot() {
+    try {
+      historyStack.push(JSON.stringify(state));
+      if (historyStack.length > 50) historyStack.shift();
+      redoStack = [];
+      updateHistoryButtons();
+    } catch (e) {
+      console.error('Failed to save history snapshot:', e);
+    }
+  }
+
+  function updateHistoryButtons() {
+    const btnUndo = document.getElementById('btn-undo');
+    const btnRedo = document.getElementById('btn-redo');
+    if (btnUndo) btnUndo.disabled = historyStack.length === 0;
+    if (btnRedo) btnRedo.disabled = redoStack.length === 0;
+  }
+
+  function undoAction() {
+    if (historyStack.length === 0) return;
+    try {
+      redoStack.push(JSON.stringify(state));
+      state = JSON.parse(historyStack.pop());
+      saveStateToStorage();
+      renderAll();
+      updateHistoryButtons();
+    } catch (e) {
+      console.error('Undo failed:', e);
+    }
+  }
+
+  function redoAction() {
+    if (redoStack.length === 0) return;
+    try {
+      historyStack.push(JSON.stringify(state));
+      state = JSON.parse(redoStack.pop());
+      saveStateToStorage();
+      renderAll();
+      updateHistoryButtons();
+    } catch (e) {
+      console.error('Redo failed:', e);
+    }
   }
 
   // --- LOCAL STORAGE PERSISTENCE ---
@@ -192,6 +252,30 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     });
 
+    // Undo / Redo
+    const btnUndo = document.getElementById('btn-undo');
+    const btnRedo = document.getElementById('btn-redo');
+    if (btnUndo) btnUndo.addEventListener('click', undoAction);
+    if (btnRedo) btnRedo.addEventListener('click', redoAction);
+
+    // Free Pick toggle
+    const freePickCb = document.getElementById('free-pick-checkbox');
+    if (freePickCb) {
+      freePickCb.addEventListener('change', () => {
+        const toggleBox = freePickCb.closest('.free-pick-toggle-box');
+        const amountInput = document.getElementById('input-sold-amount');
+        if (freePickCb.checked) {
+          if (toggleBox) toggleBox.classList.add('active');
+          if (amountInput && (!amountInput.value || amountInput.value.trim() === '')) {
+            amountInput.value = '0';
+          }
+        } else {
+          if (toggleBox) toggleBox.classList.remove('active');
+        }
+        renderOwnerGrid();
+      });
+    }
+
     // Sample data (testing only)
     document.getElementById('btn-quick-demo').addEventListener('click', loadDemoData);
 
@@ -219,6 +303,8 @@ document.addEventListener('DOMContentLoaded', () => {
       const name = document.getElementById('player-name').value.trim();
       if (!name) return;
 
+      saveHistorySnapshot();
+
       state.players.push({
         id: 'p-' + Date.now(),
         name: name,
@@ -236,6 +322,8 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('btn-bulk-import').addEventListener('click', () => {
       const text = document.getElementById('bulk-player-names').value.trim();
       if (!text) return;
+
+      saveHistorySnapshot();
 
       const names = text.split('\n').map(s => s.trim()).filter(Boolean);
       names.forEach((name, i) => {
@@ -258,6 +346,8 @@ document.addEventListener('DOMContentLoaded', () => {
       const text = document.getElementById('bulk-player-names').value.trim();
       if (!text) return;
       if (!confirm('This will REPLACE the entire player list and reset the auction. Continue?')) return;
+
+      saveHistorySnapshot();
 
       const names = text.split('\n').map(s => s.trim()).filter(Boolean);
       state.players = names.map((name, i) => ({
@@ -303,6 +393,8 @@ document.addEventListener('DOMContentLoaded', () => {
   function loadDemoData() {
     if (!confirm('Load sample teams & players for testing? This will replace current data.')) return;
 
+    saveHistorySnapshot();
+
     state.teams = DEMO_TEAMS.map(t => ({ ...t }));
     state.players = buildDefaultPlayers();
     state.activePlayerId = null;
@@ -321,6 +413,8 @@ document.addEventListener('DOMContentLoaded', () => {
   // --- RESET ---
   function resetAll() {
     if (!confirm('Clear all auction data? This cannot be undone.')) return;
+
+    saveHistorySnapshot();
 
     state.teams = DEFAULT_TEAMS.map(t => ({ ...t }));
     state.players = buildDefaultPlayers();
@@ -513,6 +607,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function setActivePlayer(player) {
+    saveHistorySnapshot();
     state.activePlayerId = player.id;
     state.winningTeamId = '';
     document.getElementById('input-sold-amount').value = '';
@@ -558,16 +653,31 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
+    const freePickCb = document.getElementById('free-pick-checkbox');
+    const isFreePick = freePickCb ? freePickCb.checked : false;
+
     state.teams.forEach(team => {
       const remaining = getTeamRemaining(team.id);
-      const canBid = remaining > 0;
+      const isZeroPurse = remaining <= 0;
+      const canBid = isFreePick || remaining > 0;
+
       const card = document.createElement('div');
       card.className = 'owner-select-card' +
         (team.id === state.winningTeamId ? ' selected' : '') +
-        (canBid ? '' : ' disabled');
+        (canBid ? '' : ' disabled') +
+        (isZeroPurse ? ' zero-purse' : '');
       card.dataset.teamId = team.id;
 
       const purseClass = remaining <= 100 ? 'low' : '';
+
+      let freePickBadge = '';
+      if (isZeroPurse) {
+        if (isFreePick) {
+          freePickBadge = '<div class="free-pick-tag"><i class="fa-solid fa-hand-holding-heart"></i> Free Pick Eligible</div>';
+        } else {
+          freePickBadge = '<div style="font-size:10px;color:var(--accent-red);margin-top:2px;">(₹0 Purse Left)</div>';
+        }
+      }
 
       card.innerHTML =
         logoHtml(team, 'owner-logo-img') +
@@ -575,11 +685,12 @@ document.addEventListener('DOMContentLoaded', () => {
           '<strong>' + escapeHtml(team.owner) + '</strong>' +
           '<span style="font-size:11px;color:var(--text-muted);display:block;">' + escapeHtml(team.name) + '</span>' +
           '<div class="purse-left ' + purseClass + '">Purse Left: ' + fmtRupees(remaining) + '</div>' +
+          freePickBadge +
         '</div>';
 
       card.addEventListener('click', () => {
         if (!canBid) {
-          alert(team.owner + ' (' + team.name + ') has no purse left (₹0 remaining).');
+          alert(team.owner + ' (' + team.name + ') has no purse left (₹0 remaining).\nCheck "Free Pick" above to assign players to this owner.');
           return;
         }
         state.winningTeamId = team.id;
@@ -590,7 +701,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // --- MARK AS SOLD (with strict ₹500 purse validation) ---
+  // --- MARK AS SOLD (with strict ₹500 purse validation & Free Pick override) ---
   function markPlayerSold() {
     const player = getActivePlayer();
     if (!player) {
@@ -604,21 +715,31 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    const price = parseInt(document.getElementById('input-sold-amount').value, 10);
-    if (isNaN(price) || price <= 0) {
-      alert('Please enter a valid final sold price in Rupees (₹).');
-      return;
+    const freePickCb = document.getElementById('free-pick-checkbox');
+    const isFreePick = freePickCb ? freePickCb.checked : false;
+
+    let price = parseInt(document.getElementById('input-sold-amount').value, 10);
+    
+    if (isFreePick) {
+      if (isNaN(price) || price < 0) price = 0;
+    } else {
+      if (isNaN(price) || price <= 0) {
+        alert('Please enter a valid final sold price in Rupees (₹).');
+        return;
+      }
     }
 
     const team = state.teams.find(t => t.id === teamId);
     const remaining = getTeamRemaining(teamId);
 
-    // STRICT validation: owner cannot exceed their ₹500 wallet
-    if (price > remaining) {
+    // Purse validation (bypassed when Free Pick is enabled)
+    if (!isFreePick && price > remaining) {
       alert('⚠️ ' + team.owner + ' (' + team.name + ') only has ' + fmtRupees(remaining) +
-            ' left in the purse.\n' + player.name + ' cannot be bought for ' + fmtRupees(price) + '.');
+            ' left in the purse.\n' + player.name + ' cannot be bought for ' + fmtRupees(price) + '.\nUse Free Pick if owner has ₹0 left.');
       return;
     }
+
+    saveHistorySnapshot();
 
     // Assign player
     player.status = 'SOLD';
@@ -636,12 +757,18 @@ document.addEventListener('DOMContentLoaded', () => {
     state.activePlayerId = null;
     state.winningTeamId = '';
     document.getElementById('input-sold-amount').value = '';
+    if (freePickCb) {
+      freePickCb.checked = false;
+      const toggleBox = freePickCb.closest('.free-pick-toggle-box');
+      if (toggleBox) toggleBox.classList.remove('active');
+    }
 
     saveStateToStorage();
     renderAll();
 
+    const priceLabel = isFreePick && price === 0 ? 'FREE PICK (₹0)' : fmtRupees(price);
     alert('🎉 ' + player.name + ' SOLD to ' + ownerName + ' (' + team.name + ') for ' +
-          fmtRupees(price) + '!\nRemaining purse of ' + ownerName + ': ' + fmtRupees(newRemaining));
+          priceLabel + '!\nRemaining purse of ' + ownerName + ': ' + fmtRupees(newRemaining));
   }
 
   // --- MARK AS UNSOLD (goes into Round 2 pool) ---
@@ -657,6 +784,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!confirm('Mark "' + player.name + '" as UNSOLD?\nThey will be re-auctioned randomly in ' + roundLabel + '.')) {
       return;
     }
+
+    saveHistorySnapshot();
 
     player.status = 'UNSOLD';
     player.teamId = null;
@@ -801,6 +930,7 @@ chip.innerHTML = '<i class="fa-solid fa-undo"></i> ' + escapeHtml(p.name);
         const id = b.getAttribute('data-id');
         const p = state.players.find(x => x.id === id);
         if (p && confirm('Delete "' + p.name + '" from the player pool?')) {
+          saveHistorySnapshot();
           state.players = state.players.filter(x => x.id !== id);
           if (state.activePlayerId === id) state.activePlayerId = null;
           saveStateToStorage();

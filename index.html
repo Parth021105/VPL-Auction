@@ -120,6 +120,16 @@
             <h2><i class="fa-solid fa-shuffle"></i> Random Player Picker</h2>
           </div>
           
+          <!-- Undo / Redo Controls -->
+          <div class="undo-redo-bar">
+            <button id="btn-undo" class="btn btn-secondary btn-history" title="Undo last auction action" disabled>
+              <i class="fa-solid fa-undo"></i> Undo
+            </button>
+            <button id="btn-redo" class="btn btn-secondary btn-history" title="Redo last undone action" disabled>
+              <i class="fa-solid fa-rotate-right"></i> Redo
+            </button>
+          </div>
+
           <div class="draw-box">
             <div class="shuffle-display" id="shuffle-display">
               <div class="slot-text">READY TO DRAW</div>
@@ -175,8 +185,21 @@
                   <label for="input-sold-amount"><i class="fa-solid fa-indian-rupee-sign"></i> Final Winning Price (Rupees ₹) *</label>
                   <div class="rupee-input-wrapper">
                     <span class="currency-symbol">₹</span>
-                    <input type="number" id="input-sold-amount" placeholder="Enter winning bid amount (e.g. 50)" min="0" max="500" step="1" required>
+                    <input type="text" inputmode="numeric" pattern="[0-9]*" id="input-sold-amount" placeholder="Enter winning bid amount (e.g. 50)" required>
                   </div>
+                </div>
+
+                <!-- Free Pick Toggle for Zero-Purse Owners -->
+                <div class="form-group margin-top-md free-pick-toggle-box">
+                  <label class="free-pick-label" title="Assign player to an owner with ₹0 purse without purse deduction">
+                    <input type="checkbox" id="free-pick-checkbox">
+                    <span class="free-pick-text">
+                      <i class="fa-solid fa-hand-holding-heart"></i> Free Pick (assign at ₹0, no purse required)
+                    </span>
+                  </label>
+                  <p class="help-text" style="font-size:11px;margin:4px 0 0 26px;">
+                    Use this when an owner has ₹0 left but still needs players to fill their roster.
+                  </p>
                 </div>
 
                 <!-- Select Owner Grid / Radio buttons with Logos -->

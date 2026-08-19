@@ -552,6 +552,104 @@ body {
 }
 .rupee-input-wrapper input:focus { outline: none; }
 
+/* Hide all browser input spin buttons and steppers */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none !important;
+  margin: 0 !important;
+  display: none !important;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield !important;
+  appearance: textfield !important;
+}
+
+/* Undo / Redo Bar */
+.undo-redo-bar {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.btn-history {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--border-light);
+  color: var(--text-main);
+}
+.btn-history:hover:not(:disabled) {
+  background: rgba(0, 242, 254, 0.15);
+  border-color: var(--primary-cyan);
+}
+.btn-history:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Free Pick Toggle Box */
+.free-pick-toggle-box {
+  background: rgba(245, 158, 11, 0.08);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  transition: all 0.25s ease;
+}
+
+.free-pick-toggle-box.active {
+  background: rgba(245, 158, 11, 0.18);
+  border-color: var(--accent-amber);
+  box-shadow: 0 0 15px rgba(245, 158, 11, 0.25);
+}
+
+.free-pick-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--accent-amber);
+}
+
+.free-pick-label input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--accent-amber);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+/* Zero-Purse Owners (Free Pick Eligible) */
+.owner-select-card.zero-purse {
+  border-style: dashed;
+  border-color: var(--accent-amber);
+}
+.owner-select-card.zero-purse:not(.disabled) {
+  background: rgba(245, 158, 11, 0.08);
+  box-shadow: 0 0 12px rgba(245, 158, 11, 0.2);
+}
+.owner-select-card.zero-purse.selected {
+  border-color: var(--accent-amber);
+  border-style: solid;
+  box-shadow: 0 0 16px rgba(245, 158, 11, 0.4);
+}
+
+.free-pick-tag {
+  display: inline-block;
+  margin-top: 4px;
+  background: rgba(245, 158, 11, 0.2);
+  border: 1px solid var(--accent-amber);
+  color: var(--accent-amber);
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 10px;
+  text-transform: uppercase;
+}
+
 /* 5 OWNER SELECTOR GRID */
 .owner-selector-grid {
   display: grid;
