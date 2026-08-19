@@ -948,10 +948,51 @@ chip.innerHTML = '<i class="fa-solid fa-undo"></i> ' + escapeHtml(p.name);
     state.teams.forEach((team, i) => {
       const row = document.createElement('div');
       row.className = 'team-config-row';
+
+      const logoSrc = getLogoPath(team);
+
       row.innerHTML =
-        '<input class="cfg-team-name" placeholder="Team ' + (i + 1) + ' name" value="' + escapeHtml(team.name) + '">' +
-        '<input class="cfg-owner-name" placeholder="Owner ' + (i + 1) + ' name" value="' + escapeHtml(team.owner) + '">' +
-        '<input class="cfg-logo" placeholder="logo.png" value="' + escapeHtml(team.logo || '') + '">';
+        '<div class="team-cfg-preview">' +
+          (logoSrc ? '<img src="' + escapeHtml(logoSrc) + '" class="cfg-preview-img" onerror="window.__logoFallback(this)">' : '<i class="fa-solid fa-shield-halved"></i>') +
+        '</div>' +
+        '<div class="team-cfg-inputs">' +
+          '<div class="cfg-input-group">' +
+            '<input class="cfg-team-name" placeholder="Team ' + (i + 1) + ' Name" value="' + escapeHtml(team.name) + '">' +
+            '<input class="cfg-owner-name" placeholder="Owner ' + (i + 1) + ' Name" value="' + escapeHtml(team.owner) + '">' +
+          '</div>' +
+          '<div class="cfg-logo-group">' +
+            '<label class="btn-upload-logo" title="Upload image file from device">' +
+              '<i class="fa-solid fa-upload"></i> Upload Logo' +
+              '<input type="file" class="cfg-logo-file" accept="image/*" style="display:none;">' +
+            '</label>' +
+            '<input class="cfg-logo-url" placeholder="Or paste image URL / filename" value="' + escapeHtml(team.logo || '') + '">' +
+          '</div>' +
+        '</div>';
+
+      const fileInput = row.querySelector('.cfg-logo-file');
+      const urlInput = row.querySelector('.cfg-logo-url');
+      const previewBox = row.querySelector('.team-cfg-preview');
+
+      fileInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = function(evt) {
+            const dataUrl = evt.target.result;
+            urlInput.value = dataUrl;
+            previewBox.innerHTML = '<img src="' + dataUrl + '" class="cfg-preview-img">';
+          };
+          reader.readAsDataURL(file);
+        }
+      });
+
+      urlInput.addEventListener('input', () => {
+        const val = urlInput.value.trim();
+        if (val) {
+          previewBox.innerHTML = '<img src="' + escapeHtml(val) + '" class="cfg-preview-img" onerror="window.__logoFallback(this)">';
+        }
+      });
+
       container.appendChild(row);
     });
 
@@ -959,13 +1000,15 @@ chip.innerHTML = '<i class="fa-solid fa-undo"></i> ' + escapeHtml(p.name);
   }
 
   function saveTeamsConfig() {
+    saveHistorySnapshot();
+
     const rows = document.querySelectorAll('.team-config-row');
     rows.forEach((row, i) => {
       const team = state.teams[i];
       if (!team) return;
       team.name = row.querySelector('.cfg-team-name').value.trim() || team.name;
       team.owner = row.querySelector('.cfg-owner-name').value.trim() || team.owner;
-      team.logo = row.querySelector('.cfg-logo').value.trim();
+      team.logo = row.querySelector('.cfg-logo-url').value.trim();
       team.budget = 500;
     });
 
