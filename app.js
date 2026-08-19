@@ -998,12 +998,14 @@ chip.innerHTML = '<i class="fa-solid fa-undo"></i> ' + escapeHtml(p.name);
 
       let tableRows = '';
       if (teamPlayers.length === 0) {
-        tableRows = '<tr><td colspan="2" style="text-align:center;color:#94a3b8;padding:12px;">No players purchased</td></tr>';
+        tableRows = '<tr><td colspan="3" style="text-align:center;color:#94a3b8;padding:12px;">No players purchased</td></tr>';
       } else {
         tableRows = teamPlayers.map((p, idx) => {
+          const priceText = p.finalPrice === 0 ? 'Free Pick (₹0)' : fmtRupees(p.finalPrice || 0);
           return '<tr>' +
             '<td style="width:40px;font-weight:600;color:#64748b;">' + (idx + 1) + '.</td>' +
             '<td style="font-size:15px;font-weight:700;color:#0f172a;">' + escapeHtml(p.name) + '</td>' +
+            '<td style="text-align:right;font-size:15px;font-weight:800;color:#0284c7;">' + priceText + '</td>' +
           '</tr>';
         }).join('');
       }
@@ -1016,7 +1018,7 @@ chip.innerHTML = '<i class="fa-solid fa-undo"></i> ' + escapeHtml(p.name);
           '</div>' +
         '</div>' +
         '<table class="pdf-table">' +
-          '<thead><tr><th style="width:40px;">#</th><th>Player Name</th></tr></thead>' +
+          '<thead><tr><th style="width:40px;">#</th><th>Player Name</th><th style="text-align:right;">Sold Amount</th></tr></thead>' +
           '<tbody>' + tableRows + '</tbody>' +
         '</table>';
 
