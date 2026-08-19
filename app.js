@@ -980,22 +980,9 @@ chip.innerHTML = '<i class="fa-solid fa-undo"></i> ' + escapeHtml(p.name);
 
   // --- PDF REPORT VIEW ---
   function renderPDFView() {
-    document.getElementById('pdf-report-date').textContent = new Date().toLocaleDateString('en-IN', {
-      year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
-    });
-
-    const totalSold = state.players.filter(p => p.status === 'SOLD').length;
-    const totalUnsold = state.players.filter(p => p.status === 'UNSOLD').length;
-    const totalSpent = state.players.filter(p => p.status === 'SOLD').reduce((s, p) => s + (p.finalPrice || 0), 0);
-
-    document.getElementById('pdf-stat-teams').textContent = state.teams.length;
-    document.getElementById('pdf-stat-total').textContent = state.players.length;
-    document.getElementById('pdf-stat-sold').textContent = totalSold;
-    document.getElementById('pdf-stat-unsold').textContent = totalUnsold;
-    document.getElementById('pdf-stat-spent').textContent = fmtRupees(totalSpent);
-
-    // Teams content
     const teamsContainer = document.getElementById('pdf-teams-content');
+    if (!teamsContainer) return;
+
     if (state.teams.length === 0) {
       teamsContainer.innerHTML = '<div style="text-align:center;padding:40px;color:#64748b;">No registered teams found.</div>';
       return;
@@ -1005,21 +992,18 @@ chip.innerHTML = '<i class="fa-solid fa-undo"></i> ' + escapeHtml(p.name);
 
     state.teams.forEach(team => {
       const teamPlayers = state.players.filter(p => p.teamId === team.id && p.status === 'SOLD');
-      const spent = teamPlayers.reduce((s, p) => s + (p.finalPrice || 0), 0);
-      const remaining = team.budget - spent;
 
       const block = document.createElement('div');
       block.className = 'pdf-team-block';
 
       let tableRows = '';
       if (teamPlayers.length === 0) {
-        tableRows = '<tr><td colspan="4" style="text-align:center;color:#94a3b8;">No players purchased</td></tr>';
+        tableRows = '<tr><td colspan="2" style="text-align:center;color:#94a3b8;padding:12px;">No players purchased</td></tr>';
       } else {
         tableRows = teamPlayers.map((p, idx) => {
           return '<tr>' +
-            '<td style="width:40px;">' + (idx + 1) + '</td>' +
-            '<td><strong>' + escapeHtml(p.name) + '</strong></td>' +
-            '<td style="text-align:right;font-weight:700;color:#0284c7;">' + fmtRupees(p.finalPrice || 0) + '</td>' +
+            '<td style="width:40px;font-weight:600;color:#64748b;">' + (idx + 1) + '.</td>' +
+            '<td style="font-size:15px;font-weight:700;color:#0f172a;">' + escapeHtml(p.name) + '</td>' +
           '</tr>';
         }).join('');
       }
@@ -1030,41 +1014,14 @@ chip.innerHTML = '<i class="fa-solid fa-undo"></i> ' + escapeHtml(p.name);
             '<div class="pdf-team-title">' + escapeHtml(team.name) + '</div>' +
             '<div class="pdf-team-owner">Team Owner: <strong>' + escapeHtml(team.owner) + '</strong></div>' +
           '</div>' +
-          '<div style="text-align:right;font-size:12px;">' +
-            '<div>Players Acquired: <strong>' + teamPlayers.length + '</strong></div>' +
-            '<div>Total Spent: <strong>' + fmtRupees(spent) + '</strong> (Remaining: ' + fmtRupees(remaining) + ')</div>' +
-          '</div>' +
         '</div>' +
         '<table class="pdf-table">' +
-          '<thead><tr><th>#</th><th>Player Name</th><th style="text-align:right;">Winning Bid</th></tr></thead>' +
+          '<thead><tr><th style="width:40px;">#</th><th>Player Name</th></tr></thead>' +
           '<tbody>' + tableRows + '</tbody>' +
         '</table>';
 
       teamsContainer.appendChild(block);
     });
-
-    // Unsold / remaining players appendix
-    const unsoldContainer = document.getElementById('pdf-unsold-content');
-    const unsoldPlayers = state.players.filter(p => p.status === 'UNSOLD' || p.status === 'UNAUCTIONED');
-
-    if (unsoldPlayers.length > 0) {
-      const rows = unsoldPlayers.map((p, idx) => {
-        return '<tr>' +
-          '<td>' + (idx + 1) + '</td>' +
-          '<td>' + escapeHtml(p.name) + '</td>' +
-          '<td>' + p.status + '</td>' +
-        '</tr>';
-      }).join('');
-
-      unsoldContainer.innerHTML =
-        '<h3 style="font-family:Outfit,sans-serif;font-size:16px;margin:30px 0 12px;color:#0f172a;">UNSOLD / REMAINING PLAYERS (' + unsoldPlayers.length + ')</h3>' +
-        '<table class="pdf-table">' +
-          '<thead><tr><th>#</th><th>Player Name</th><th>Status</th></tr></thead>' +
-          '<tbody>' + rows + '</tbody>' +
-        '</table>';
-    } else {
-      unsoldContainer.innerHTML = '';
-    }
   }
 
   // --- PDF GENERATION ---
